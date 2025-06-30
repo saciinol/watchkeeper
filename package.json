@@ -2,7 +2,7 @@
   "name": "watchkeeper",
   "version": "1.0.0",
   "description": "",
-  "main": "backend/server.js", 
+  "main": "backend/server.js",
   "scripts": {
     "dev": "nodemon ./backend/server.js"
   },
@@ -21,6 +21,7 @@
   "dependencies": {
     "@arcjet/node": "^1.0.0-beta.8",
     "@neondatabase/serverless": "^1.0.1",
+    "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",

@@ -5,6 +5,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/authRoutes.js";
+import movieRoutes from "./routes/movieRoutes.js";
+import watchlistRoutes from "./routes/watchlistRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 import { sql } from "./config/db.js";
 
 dotenv.config();
@@ -22,8 +25,9 @@ app.use(
 app.use(morgan("dev")); // log the requests
 
 app.use("/api/auth", authRoutes);
-// app.use("/api/movies", movieRoutes);
-// app.use("/api/watchlist", watchlistRoutes);
+app.use("/api/movies", movieRoutes);
+app.use("/api/watchlist", watchlistRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 async function initDB() {
 	try {
@@ -59,6 +63,7 @@ async function initDB() {
 		await sql`
       CREATE TABLE IF NOT EXISTS movies (
         id SERIAL PRIMARY KEY,
+        tmdb_id INT UNIQUE,
         title VARCHAR(255),
         year INT,
         poster_url TEXT,
@@ -82,7 +87,8 @@ async function initDB() {
         user_id INT REFERENCES users(id) ON DELETE CASCADE,
         movie_id INT REFERENCES movies(id) ON DELETE CASCADE,
         rating INT,
-        comment TEXT
+        comment TEXT,
+        UNIQUE (user_id, movie_id)
       );
     `;
 
