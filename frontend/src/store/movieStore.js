@@ -1,7 +1,8 @@
 import { create } from "zustand";
+import { movieService } from "../services/movieService.js";
 
 const useMovieStore = create((set, get) => ({
-	// State
+	// state
 	searchResults: [],
 	searchQuery: "",
 	isSearching: false,
@@ -10,7 +11,7 @@ const useMovieStore = create((set, get) => ({
 	isLoading: false,
 	error: null,
 
-	// Search Actions
+	// search Actions
 	setSearchQuery: (query) => set({ searchQuery: query }),
 
 	setSearchResults: (results) => set({ searchResults: results }),
@@ -26,7 +27,6 @@ const useMovieStore = create((set, get) => ({
 		set({ isSearching: true, error: null, searchQuery: query });
 
 		try {
-			// This would call your movie service
 			const results = await movieService.searchMovies(query);
 			set({
 				searchResults: results,
@@ -48,7 +48,7 @@ const useMovieStore = create((set, get) => ({
 			error: null,
 		}),
 
-	// Saved Movies Actions
+	// saved Movies Actions
 	setSavedMovies: (movies) => set({ savedMovies: movies }),
 
 	addSavedMovie: (movie) => {
@@ -67,7 +67,7 @@ const useMovieStore = create((set, get) => ({
 		});
 	},
 
-	// Current Movie Actions
+	// current Movie Actions
 	setCurrentMovie: (movie) => set({ currentMovie: movie }),
 
 	loadMovie: async (movieId) => {
@@ -88,7 +88,7 @@ const useMovieStore = create((set, get) => ({
 		}
 	},
 
-	// Utility Actions
+	// utility Actions
 	setLoading: (isLoading) => set({ isLoading }),
 	setError: (error) => set({ error }),
 	clearError: () => set({ error: null }),
