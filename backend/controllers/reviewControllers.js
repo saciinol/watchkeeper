@@ -1,6 +1,6 @@
 import { sql } from "../config/db.js";
 
-// Add or update review
+// add or update review
 export const upsertReview = async (req, res) => {
 	const { user_id, movie_id, rating, comment } = req.body;
 
@@ -33,7 +33,7 @@ export const upsertReview = async (req, res) => {
 	}
 };
 
-// Get all reviews for a movie
+// get all reviews for a movie
 export const getMovieReviews = async (req, res) => {
 	const { movieId } = req.params;
 
@@ -58,7 +58,33 @@ export const getMovieReviews = async (req, res) => {
 	}
 };
 
-// Delete a review
+// get all reviews by a user
+export const getUserReviews = async (req, res) => {
+	const { userId } = req.params;
+
+	try {
+		const reviews = await sql`
+			SELECT r.*, m.title AS movie_title, m.poster_url
+			FROM reviews r
+			JOIN movies m ON r.movie_id = m.id
+			WHERE r.user_id = ${userId}
+			ORDER BY r.id DESC;
+		`;
+
+		res.status(200).json({
+			success: true,
+			data: reviews,
+		});
+	} catch (error) {
+		console.error("Fetch user reviews error:", error.message);
+		res.status(500).json({
+			success: false,
+			message: "Failed to get user reviews",
+		});
+	}
+};
+
+// delete a review
 export const deleteReview = async (req, res) => {
 	const { reviewId } = req.params;
 

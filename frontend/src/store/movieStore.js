@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { movieService } from "../services/movieService.js";
+import { movieService } from "../services/movieService";
 
 const useMovieStore = create((set, get) => ({
 	// state

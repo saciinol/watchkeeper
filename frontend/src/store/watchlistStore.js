@@ -1,12 +1,12 @@
 import { create } from "zustand";
+import { watchlistService } from "../services/watchlistService";
 
 const useWatchlistStore = create((set, get) => ({
-	// State
+	// state
 	watchlist: [],
 	isLoading: false,
 	error: null,
 
-	// Computed getters (functions that derive state)
 	getWantToWatch: () => {
 		const { watchlist } = get();
 		return watchlist.filter((item) => item.status === "want_to_watch");
@@ -22,13 +22,13 @@ const useWatchlistStore = create((set, get) => ({
 		return watchlist.filter((item) => item.status === "completed");
 	},
 
-	// Check if movie is in watchlist
+	// check if movie is in watchlist
 	isInWatchlist: (tmdbId) => {
 		const { watchlist } = get();
 		return watchlist.find((item) => item.tmdb_id === tmdbId);
 	},
 
-	// Actions
+	// actions
 	setWatchlist: (watchlist) => set({ watchlist }),
 
 	setLoading: (isLoading) => set({ isLoading }),
@@ -61,7 +61,7 @@ const useWatchlistStore = create((set, get) => ({
 				status,
 			});
 
-			// Update local state
+			// update local state
 			const { watchlist } = get();
 			const updatedWatchlist = [
 				...watchlist,
@@ -92,7 +92,7 @@ const useWatchlistStore = create((set, get) => ({
 
 			await watchlistService.updateWatchlistStatus(tmdbId, newStatus);
 
-			// Update local state
+			// update local state
 			const updatedWatchlist = watchlist.map((w) => (w.tmdb_id === tmdbId ? { ...w, status: newStatus } : w));
 
 			set({ watchlist: updatedWatchlist });
