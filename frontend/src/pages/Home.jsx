@@ -71,7 +71,7 @@ const Home = () => {
 						</div>
 					</div>
 
-					<div className="card-base-100 shadow-md">
+					<div className="card bg-base-100 shadow-md">
 						<div className="card-body text-center">
 							<h3 className="card-title">My Watchlist</h3>
 							<p>Track movies you want to watch</p>

@@ -52,12 +52,11 @@ async function initDB() {
       $$ language 'plpgsql'
     `;
 
-		// Use sql.query() for the trigger
-		await sql.query(`
+		await sql.unsafe(`
       CREATE OR REPLACE TRIGGER update_users_updated_at
-          BEFORE UPDATE ON users
-          FOR EACH ROW
-          EXECUTE FUNCTION update_updated_at_column()
+      BEFORE UPDATE ON users
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column();
     `);
 
 		await sql`

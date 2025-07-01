@@ -2,12 +2,21 @@ import { sql } from "../config/db.js";
 
 // add or update review
 export const upsertReview = async (req, res) => {
-	const { user_id, movie_id, rating, comment } = req.body;
+	const { movie_id, rating, comment } = req.body;
+	const user_id = req.user.id; // get from authenticated user
 
-	if (!user_id || !movie_id || rating == null) {
+	if (!movie_id || rating == null) {
 		return res.status(400).json({
 			success: false,
-			message: "Missing required fields",
+			message: "Movie ID and rating are required",
+		});
+	}
+
+	// validate rating range
+	if (rating < 1 || rating > 5) {
+		return res.status(400).json({
+			success: false,
+			message: "Rating must be between 1 and 5",
 		});
 	}
 
@@ -42,7 +51,8 @@ export const getMovieReviews = async (req, res) => {
       SELECT r.*, u.name AS user_name
       FROM reviews r
       JOIN users u ON r.user_id = u.id
-      WHERE movie_id = ${movieId};
+      WHERE movie_id = ${movieId}
+      ORDER BY r.id DESC;
     `;
 
 		res.status(200).json({
@@ -87,8 +97,21 @@ export const getUserReviews = async (req, res) => {
 // delete a review
 export const deleteReview = async (req, res) => {
 	const { reviewId } = req.params;
+  const userId = req.user.id;
 
 	try {
+    // verify the review belongs to the user
+		const review = await sql`
+			SELECT * FROM reviews WHERE id = ${reviewId} AND user_id = ${userId}
+		`;
+
+		if (review.length === 0) {
+			return res.status(404).json({
+				success: false,
+				message: "Review not found or access denied",
+			});
+		}
+
 		await sql`DELETE FROM reviews WHERE id = ${reviewId}`;
 
 		res.status(200).json({

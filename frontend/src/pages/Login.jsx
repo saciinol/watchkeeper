@@ -5,7 +5,7 @@ import { loginUser } from "../services/authService";
 import toast from "react-hot-toast";
 
 const Login = () => {
-	const { formData, setFormData } = useState({
+	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
 	});
