@@ -8,8 +8,3 @@ export const loginUser = async (email, password) => {
 
 	return response.data;
 };
-
-export const getMovies = async () => {
-	const response = await api.get("/movies");
-	return response.data;
-};
