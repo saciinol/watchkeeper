@@ -1,23 +1,31 @@
 import { useEffect } from "react";
 import { useMovieStore } from "../store/movieStore";
+import { movieService } from "../services/movieService";
 import MovieCard from "../components/MovieCard";
+import toast from "react-hot-toast";
 
 const Home = () => {
-	const { savedMovies, setSavedMovies, isLoading, error } = useMovieStore();
+	const { savedMovies, setSavedMovies, isLoading, error, setLoading, setError } = useMovieStore();
 
 	useEffect(() => {
-		// load popular/featured movies on home page
 		const loadMovies = async () => {
+			setLoading(true);
+			setError(null);
+
 			try {
-        // you could fetch popular movies from TMDB or your saved movies
-				// for now, we'll just show saved movies
+				const movies = await movieService.getMovies();
+				setSavedMovies(movies); // show saved movies for now
 			} catch (error) {
-				console.error("Error loading Movies", error);
+				console.error("Error loading movies:", error);
+				setError(error.message || "Failed to load movies");
+				toast.error("Failed to load movies");
+			} finally {
+				setLoading(false);
 			}
 		};
 
 		loadMovies();
-	}, []);
+	}, [setSavedMovies, setLoading, setError]);
 
 	return (
 		<div className="container mx-auto px-4 py-8">
@@ -44,13 +52,16 @@ const Home = () => {
 
 				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
 					{savedMovies.slice(0, 8).map((movie) => (
-						<MovieCard key={movie.id} movie={movie} />
+						<MovieCard key={movie.id || movie.tmdb_id} movie={movie} />
 					))}
 				</div>
 
-				{savedMovies.length === 0 && !isLoading && (
+				{savedMovies.length === 0 && !isLoading && !error && (
 					<div className="text-center py-8">
 						<p className="text-gray-500">No movies to display yet.</p>
+						<p className="text-sm text-gray-400 mt-2">
+							Start by searching for movies and adding them to your watchlist!
+						</p>
 					</div>
 				)}
 			</section>

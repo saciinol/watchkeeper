@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store";
 import { loginUser } from "../services/authService";
+import { validateLoginForm, sanitizeInput } from "../utils/validation";
 import toast from "react-hot-toast";
 
 const Login = () => {
@@ -10,6 +11,7 @@ const Login = () => {
 		password: "",
 	});
 	const [showPassword, setShowPassword] = useState(false);
+	const [validationErrors, setValidationErrors] = useState({});
 
 	const { login, isLoading, error } = useAuthStore();
 	const navigate = useNavigate();
@@ -19,17 +21,41 @@ const Login = () => {
 	const from = location.state?.from?.pathname || "/";
 
 	const handleChange = (e) => {
+		const { name, value } = e.target;
+
+		if (validationErrors[name]) {
+			setValidationErrors((prev) => ({
+				...prev,
+				[name]: null,
+			}));
+		}
+
 		setFormData({
 			...formData,
-			[e.target.name]: e.target.value,
+			[name]: sanitizeInput(value),
 		});
 	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		const validation = validateLoginForm(formData);
+
+		if (!validation.isValid) {
+			setValidationErrors(validation.errors);
+
+			const firstError = Object.values(validation.errors)[0];
+			if (firstError && firstError.length > 0) {
+				toast.error(firstError[0]);
+			}
+			return;
+		}
+
+		// clear validation errors if form is valid
+		setValidationErrors();
+
 		try {
-			const response = await loginUser(formData.email, formData.password);
+			const response = await loginUser(formData.email.trim(), formData.password);
 
 			if (response.success) {
 				await login(response.data.user, response.data.token);
@@ -65,10 +91,15 @@ const Login = () => {
 								name="email"
 								value={formData.email}
 								onChange={handleChange}
-								className="input input-bordered"
+								className={`input input-bordered ${validationErrors.email ? "input-error" : ""}`}
 								placeholder="Enter your email"
 								required
 							/>
+							{validationErrors.email && (
+								<label className="label">
+									<span className="label-text-alt text-error text-xs">{validationErrors.email[0]}</span>
+								</label>
+							)}
 						</div>
 
 						<div className="form-control">
@@ -82,7 +113,7 @@ const Login = () => {
 									name="password"
 									value={formData.password}
 									onChange={handleChange}
-									className="input input-bordered w-full pr-10"
+									className={`input input-bordered w-full pr-10 ${validationErrors.password ? "input-error" : ""}`}
 									placeholder="Enter your password"
 									required
 								/>
@@ -94,6 +125,11 @@ const Login = () => {
 									{showPassword ? "👁️" : "👁️‍🗨️"}
 								</button>
 							</div>
+							{validationErrors.password && (
+								<label className="label">
+									<span className="label-text-alt text-error text-xs">{validationErrors.password[0]}</span>
+								</label>
+							)}
 						</div>
 
 						<div className="form-control mt-6">
