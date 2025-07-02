@@ -4,9 +4,14 @@ import { Toaster } from "react-hot-toast";
 import { initializeStores } from "./store";
 import { useAuthStore } from "./store";
 
+import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Search from "./pages/Search";
+import MovieDetails from "./pages/MovieDetails";
+// import Watchlist from "./pages/Watchlist";
+// import Profile from "./pages/Profile";
 
 const ProtectedRoute = ({ children }) => {
 	const { isAuthenticated } = useAuthStore();
@@ -15,7 +20,7 @@ const ProtectedRoute = ({ children }) => {
 		return <Navigate to="/login" replace />;
 	}
 
-	return children;
+	return <Layout>{children}</Layout>;
 };
 
 //public Route component (redirect to home if already authenticated)
@@ -83,38 +88,37 @@ function App() {
 						path="/search"
 						element={
 							<ProtectedRoute>
-								{/* your Search component will go here */}
-								<div className="container mx-auto px-4 py-8">
-									<h1 className="text-2xl font-bold">Search Movies</h1>
-									<p>Search page coming soon...</p>
-								</div>
+								<Search />
 							</ProtectedRoute>
 						}
 					/>
+
 					<Route
+						path="/movie/:id"
+						element={
+							<ProtectedRoute>
+								<MovieDetails />
+							</ProtectedRoute>
+						}
+					/>
+
+					{/* <Route
 						path="/watchlist"
 						element={
 							<ProtectedRoute>
-								{/* your Watchlist component will go here */}
-								<div className="container mx-auto px-4 py-8">
-									<h1 className="text-2xl font-bold">My Watchlist</h1>
-									<p>Watchlist page coming soon...</p>
-								</div>
+								<Watchlist />
 							</ProtectedRoute>
 						}
 					/>
+
 					<Route
 						path="/profile"
 						element={
 							<ProtectedRoute>
-								{/* your Profile component will go here */}
-								<div className="container mx-auto px-4 py-8">
-									<h1 className="text-2xl font-bold">My Profile</h1>
-									<p>Profile page coming soon...</p>
-								</div>
+								<Profile />
 							</ProtectedRoute>
 						}
-					/>
+					/> */}
 
 					{/* catch all route - redirect to home */}
 					<Route path="*" element={<Navigate to="/" replace />} />

@@ -52,7 +52,7 @@ const Login = () => {
 		}
 
 		// clear validation errors if form is valid
-		setValidationErrors();
+		setValidationErrors({});
 
 		try {
 			const response = await loginUser(formData.email.trim(), formData.password);
