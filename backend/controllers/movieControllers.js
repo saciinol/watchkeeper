@@ -19,19 +19,39 @@ export const searchTMDB = async (req, res) => {
 			},
 		});
 
-		const results = response.data.results.map((movie) => ({
-			tmdb_id: movie.id,
-			title: movie.title,
-			year: movie.release_date ? parseInt(movie.release_date.substring(0, 4)) : null,
-			poster_url: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-			plot: movie.overview,
-		}));
+    // process each movie from TMDB and save to database
+		const savedMovies = [];
 
-		console.log(`TMDB search for "${query}" returned ${results.length} results.`);
+		for (const movie of response.data.results) {
+			const movieData = {
+				tmdb_id: movie.id,
+				title: movie.title,
+				year: movie.release_date ? parseInt(movie.release_date.substring(0, 4)) : null,
+				poster_url: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+				plot: movie.overview,
+			};
+
+			// Save movie to database and get the saved record with database ID
+			const inserted = await sql`
+				INSERT INTO movies (tmdb_id, title, year, poster_url, plot)
+				VALUES (${movieData.tmdb_id}, ${movieData.title}, ${movieData.year}, ${movieData.poster_url}, ${movieData.plot})
+				ON CONFLICT (tmdb_id) DO NOTHING
+				RETURNING *;
+			`;
+
+			// Get the movie record (either newly inserted or existing)
+			const savedMovie = inserted.length > 0 
+				? inserted[0] 
+				: (await sql`SELECT * FROM movies WHERE tmdb_id = ${movieData.tmdb_id}`)[0];
+			
+			savedMovies.push(savedMovie);
+		}
+
+		console.log(`TMDB search for "${query}" returned ${savedMovies.length} results, all saved to database.`);
 
 		res.status(200).json({
 			success: true,
-			data: results,
+			data: savedMovies, // Now returns movies with database IDs
 		});
 	} catch (error) {
 		console.error("TMDB search error:", error.message);

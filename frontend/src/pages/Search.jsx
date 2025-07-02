@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMovieStore } from "../store";
 import { SearchIcon, XIcon } from "lucide-react";
 import MovieCard from "../components/MovieCard";
@@ -8,31 +8,36 @@ const Search = () => {
 	const [localQuery, setLocalQuery] = useState("");
 	const { searchResults, searchQuery, isSearching, error, searchMovies, clearSearch, setSearchQuery } = useMovieStore();
 
+  const handleSearch = useCallback(
+    async (query) => {
+      if (!query.trim()) return;
+
+      try {
+        await searchMovies(query);
+      } catch (error) {
+        toast.error(error.message || "Failed to search movies");
+      }
+    },
+    [searchMovies]
+  );
+  
 	// debounced search function
-	useEffect(() => {
+		useEffect(() => {
 		if (localQuery.trim()) {
 			const timeoutId = setTimeout(() => {
 				handleSearch(localQuery);
-			}, 500); // 500ms delay
+			}, 500);
 
 			return () => clearTimeout(timeoutId);
 		} else {
 			clearSearch();
 		}
-	}, [localQuery]);
+	}, [localQuery, clearSearch, handleSearch]);
 
-	const handleSearch = async (query) => {
-		if (!query.trim()) return;
-
-		try {
-			await searchMovies(query);
-		} catch (error) {
-			toast.error("Failed to search movies");
-		}
-	};
 
 	const handleInputChange = (e) => {
 		setLocalQuery(e.target.value);
+		setSearchQuery(e.target.value);
 	};
 
 	const handleClearSearch = () => {
