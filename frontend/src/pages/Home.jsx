@@ -1,11 +1,21 @@
-import { useEffect } from "react";
-import { useMovieStore } from "../store/movieStore";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useMovieStore } from "../store";
 import { movieService } from "../services/movieService";
 import MovieCard from "../components/MovieCard";
 import toast from "react-hot-toast";
 
 const Home = () => {
 	const { savedMovies, setSavedMovies, isLoading, error, setLoading, setError } = useMovieStore();
+	const [featuredMovies, setFeaturedMovies] = useState([]);
+
+	// function to shuffle array and get random items
+	const getRandomMovies = (movies, count = 8) => {
+		if (!movies || movies.length === 0) return [];
+
+		const shuffled = [...movies].sort(() => Math.random() - 0.5);
+		return shuffled.slice(0, Math.min(count, movies.length));
+	};
 
 	useEffect(() => {
 		const loadMovies = async () => {
@@ -14,7 +24,11 @@ const Home = () => {
 
 			try {
 				const movies = await movieService.getMovies();
-				setSavedMovies(movies); // show saved movies for now
+				setSavedMovies(movies);
+
+				// set random featured movies
+				const randomMovies = getRandomMovies(movies, 8);
+				setFeaturedMovies(randomMovies);
 			} catch (error) {
 				console.error("Error loading movies:", error);
 				setError(error.message || "Failed to load movies");
@@ -27,6 +41,14 @@ const Home = () => {
 		loadMovies();
 	}, [setSavedMovies, setLoading, setError]);
 
+	// update featured movies when savedMovies changes
+	useEffect(() => {
+		if (savedMovies.length > 0) {
+			const randomMovies = getRandomMovies(savedMovies, 8);
+			setFeaturedMovies(randomMovies);
+		}
+	}, [savedMovies]);
+
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<div className="text-center mb-8">
@@ -36,7 +58,20 @@ const Home = () => {
 
 			{/* Featured Movies Section */}
 			<section className="mb-12">
-				<h2 className="text-2xl font-semibold mb-6">Featured Movies</h2>
+				<div className="flex justify-between items-center mb-6">
+					<h2 className="text-2xl font-semibold">Featured Movies</h2>
+					{savedMovies.length > 8 && (
+						<button
+							className="btn btn-sm btn-outline"
+							onClick={() => {
+								const randomMovies = getRandomMovies(savedMovies, 8);
+								setFeaturedMovies(randomMovies);
+							}}
+						>
+							Shuffle
+						</button>
+					)}
+				</div>
 
 				{isLoading && (
 					<div className="flex justify-center">
@@ -51,7 +86,7 @@ const Home = () => {
 				)}
 
 				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-					{savedMovies.slice(0, 8).map((movie) => (
+					{featuredMovies.map((movie) => (
 						<MovieCard key={movie.id || movie.tmdb_id} movie={movie} />
 					))}
 				</div>
@@ -75,9 +110,9 @@ const Home = () => {
 							<h3 className="card-title">Search Movies</h3>
 							<p>Find your next favorite movie</p>
 							<div className="card-actions justify-center">
-								<a href="/search" className="btn btn-primary">
+								<Link to="/search" className="btn btn-primary">
 									Start Searching
-								</a>
+								</Link>
 							</div>
 						</div>
 					</div>
@@ -87,9 +122,9 @@ const Home = () => {
 							<h3 className="card-title">My Watchlist</h3>
 							<p>Track movies you want to watch</p>
 							<div className="card-actions justify-center">
-								<a href="/watchlist" className="btn btn-secondary">
+								<Link to="/watchlist" className="btn btn-secondary">
 									View Watchlist
-								</a>
+								</Link>
 							</div>
 						</div>
 					</div>
@@ -99,9 +134,9 @@ const Home = () => {
 							<h3 className="card-title">My Reviews</h3>
 							<p>See all your movie reviews</p>
 							<div className="card-actions justify-center">
-								<a href="/profile" className="btn btn-accent">
+								<Link to="/profile" className="btn btn-accent">
 									View Profile
-								</a>
+								</Link>
 							</div>
 						</div>
 					</div>

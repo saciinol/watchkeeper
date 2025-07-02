@@ -33,6 +33,10 @@ export const validateName = (name) => {
 		if (name.trim().length > 100) {
 			errors.push("Name cannot exceed 100 characters");
 		}
+
+		if (!/^[a-zA-Z0-9 .\-_]+$/.test(name.trim())) {
+			errors.push("Name can only contain letters, numbers, spaces, hyphens, periods, or underscores");
+		}
 	}
 
 	return {
