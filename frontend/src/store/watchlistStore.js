@@ -90,7 +90,7 @@ const useWatchlistStore = create((set, get) => ({
 
 			if (!item) return;
 
-			await watchlistService.updateWatchlistStatus(tmdbId, newStatus);
+			await watchlistService.updateWatchlistStatus(item, newStatus);
 
 			// update local state
 			const updatedWatchlist = watchlist.map((w) => (w.tmdb_id === tmdbId ? { ...w, status: newStatus } : w));

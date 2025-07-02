@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMovieStore } from "../store";
 import { movieService } from "../services/movieService";
+import { RefreshCwIcon } from "lucide-react";
 import MovieCard from "../components/MovieCard";
 import toast from "react-hot-toast";
 
@@ -10,7 +11,7 @@ const Home = () => {
 	const [featuredMovies, setFeaturedMovies] = useState([]);
 
 	// function to shuffle array and get random items
-	const getRandomMovies = (movies, count = 8) => {
+	const getRandomMovies = (movies, count = 10) => {
 		if (!movies || movies.length === 0) return [];
 
 		const shuffled = [...movies].sort(() => Math.random() - 0.5);
@@ -27,7 +28,7 @@ const Home = () => {
 				setSavedMovies(movies);
 
 				// set random featured movies
-				const randomMovies = getRandomMovies(movies, 8);
+				const randomMovies = getRandomMovies(movies, 10);
 				setFeaturedMovies(randomMovies);
 			} catch (error) {
 				console.error("Error loading movies:", error);
@@ -41,14 +42,6 @@ const Home = () => {
 		loadMovies();
 	}, [setSavedMovies, setLoading, setError]);
 
-	// update featured movies when savedMovies changes
-	useEffect(() => {
-		if (savedMovies.length > 0) {
-			const randomMovies = getRandomMovies(savedMovies, 8);
-			setFeaturedMovies(randomMovies);
-		}
-	}, [savedMovies]);
-
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<div className="text-center mb-8">
@@ -60,15 +53,15 @@ const Home = () => {
 			<section className="mb-12">
 				<div className="flex justify-between items-center mb-6">
 					<h2 className="text-2xl font-semibold">Featured Movies</h2>
-					{savedMovies.length > 8 && (
+					{savedMovies.length > 10 && (
 						<button
 							className="btn btn-sm btn-outline"
 							onClick={() => {
-								const randomMovies = getRandomMovies(savedMovies, 8);
+								const randomMovies = getRandomMovies(savedMovies, 10);
 								setFeaturedMovies(randomMovies);
 							}}
 						>
-							Shuffle
+							<RefreshCwIcon className="size-5" />
 						</button>
 					)}
 				</div>
@@ -85,7 +78,7 @@ const Home = () => {
 					</div>
 				)}
 
-				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
 					{featuredMovies.map((movie) => (
 						<MovieCard key={movie.id || movie.tmdb_id} movie={movie} />
 					))}
