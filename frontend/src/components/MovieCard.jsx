@@ -1,45 +1,66 @@
 import { useState } from "react";
 import { useAuthStore, useWatchlistStore } from "../store";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
+import { BookmarkIcon, CheckCircleIcon, PlayIcon } from "lucide-react";
 
 const MovieCard = ({ movie }) => {
-	const [isAddingToWatchlist, setIsAddingToWatchlist] = useState(false);
+	const [isAdding, setIsAdding] = useState(false);
 	const { user, isAuthenticated } = useAuthStore();
 	const { addToWatchlist, isInWatchlist, updateWatchlistStatus } = useWatchlistStore();
 
 	const watchlistItem = isInWatchlist(movie.tmdb_id);
 
-	const handleAddToWatchlist = async (status = "want_to_watch") => {
+	const statusLabels = {
+		want_to_watch: "Want to Watch",
+		watching: "Currently Watching",
+		completed: "Completed",
+	};
+
+	const handleAddToWatchlist = async (status) => {
 		if (!isAuthenticated) {
 			toast.error("Please login to add movies to your watchlist");
 			return;
 		}
 
-		setIsAddingToWatchlist(true);
+		setIsAdding(true);
+
+		const movieData = {
+			user_id: user.id,
+			tmdb_id: movie.tmdb_id,
+			title: movie.title,
+			year: movie.year,
+			poster_url: movie.poster_url,
+			plot: movie.plot,
+		};
 
 		try {
-			const movieData = {
-				user_id: user.id,
-				tmdb_id: movie.tmdb_id,
-				title: movie.title,
-				year: movie.year,
-				poster_url: movie.poster_url,
-				plot: movie.plot,
-			};
-
 			if (watchlistItem) {
-				// update existing status
 				await updateWatchlistStatus(movie.tmdb_id, status);
-				toast.success(`Updated to ${status.replace("_", " ")}`);
+				toast.success(
+					`Updated to ${statusLabels[status]}`
+				);
 			} else {
-				// add new item
 				await addToWatchlist(movieData, status);
 				toast.success("Added to watchlist");
 			}
 		} catch (error) {
 			toast.error(error.message || "Failed to update watchlist");
 		} finally {
-			setIsAddingToWatchlist(false);
+			setIsAdding(false);
+		}
+	};
+
+	const getStatusIcon = (status) => {
+		switch (status) {
+			case "want_to_watch":
+				return <BookmarkIcon className="w-4 h-4" />;
+			case "watching":
+				return <PlayIcon className="w-4 h-4" />;
+			case "completed":
+				return <CheckCircleIcon className="w-4 h-4" />;
+			default:
+				return <BookmarkIcon className="w-4 h-4" />;
 		}
 	};
 
@@ -60,7 +81,12 @@ const MovieCard = ({ movie }) => {
 		<div className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
 			<figure className="aspect-[2/3] overflow-hidden">
 				{movie.poster_url ? (
-					<img src={movie.poster_url} alt={movie.title} className="w-full h-full object-cover" loading="lazy" />
+					<img
+						src={movie.poster_url}
+						alt={movie.title || "Movie poster"}
+						className="w-full h-full object-cover"
+						loading="lazy"
+					/>
 				) : (
 					<div className="w-full h-full bg-base-200 flex items-center justify-center">
 						<span className="text-base-content/50">No Image</span>
@@ -79,7 +105,10 @@ const MovieCard = ({ movie }) => {
 				{watchlistItem && (
 					<div className="mb-2">
 						<span className={`badge badge-sm ${getStatusColor(watchlistItem.status)}`}>
-							{watchlistItem.status.replace("_", " ")}
+							{getStatusIcon(watchlistItem.status)}
+							<span className="ml-1">
+								{statusLabels[watchlistItem.status]}
+							</span>
 						</span>
 					</div>
 				)}
@@ -88,13 +117,13 @@ const MovieCard = ({ movie }) => {
 					{isAuthenticated ? (
 						<div className="dropdown dropdown-top">
 							<button
-								className={`btn btn-sm btn-primary ${isAddingToWatchlist ? "loading" : ""}`}
-								disabled={isAddingToWatchlist}
+								className={`btn btn-sm btn-primary ${isAdding ? "loading" : ""}`}
+								disabled={isAdding}
 								tabIndex={0}
 							>
 								{watchlistItem ? "Update" : "Add to List"}
 							</button>
-							<ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mb-2">
+							<ul className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mb-2">
 								<li>
 									<button onClick={() => handleAddToWatchlist("want_to_watch")}>Want to Watch</button>
 								</li>
@@ -110,14 +139,15 @@ const MovieCard = ({ movie }) => {
 						<button
 							className="btn btn-sm btn-outline"
 							onClick={() => toast.error("Please login to add movies to your watchlist")}
+							aria-label="Login to add to watchlist"
 						>
 							Login to Add
 						</button>
 					)}
 
-					<a href={`/movie/${movie.id || movie.tmdb_id}`} className="btn btn-sm btn-ghost">
+					<Link to={`/movie/${movie.id}`} className="btn btn-sm btn-ghost" aria-label="View movie details">
 						Details
-					</a>
+					</Link>
 				</div>
 			</div>
 		</div>

@@ -10,8 +10,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Search from "./pages/Search";
 import MovieDetails from "./pages/MovieDetails";
-// import Watchlist from "./pages/Watchlist";
-// import Profile from "./pages/Profile";
+import Watchlist from "./pages/Watchlist";
+import Profile from "./pages/Profile";
 
 const ProtectedRoute = ({ children }) => {
 	const { isAuthenticated } = useAuthStore();
@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children }) => {
 	return <Layout>{children}</Layout>;
 };
 
-//public Route component (redirect to home if already authenticated)
+// Public Route component (redirect to home if already authenticated)
 const PublicRoute = ({ children }) => {
 	const { isAuthenticated } = useAuthStore();
 
@@ -42,7 +42,7 @@ function App() {
 	return (
 		<Router>
 			<div className="min-h-screen bg-base-100">
-				{/* toast notifications */}
+				{/* Toast notifications */}
 				<Toaster
 					position="top-right"
 					toastOptions={{
@@ -55,7 +55,7 @@ function App() {
 				/>
 
 				<Routes>
-					{/* public routes */}
+					{/* Public routes */}
 					<Route
 						path="/login"
 						element={
@@ -73,7 +73,7 @@ function App() {
 						}
 					/>
 
-					{/* protected routes */}
+					{/* Protected routes */}
 					<Route
 						path="/"
 						element={
@@ -83,7 +83,6 @@ function App() {
 						}
 					/>
 
-					{/* add more protected routes here as needed */}
 					<Route
 						path="/search"
 						element={
@@ -102,7 +101,7 @@ function App() {
 						}
 					/>
 
-					{/* <Route
+					<Route
 						path="/watchlist"
 						element={
 							<ProtectedRoute>
@@ -118,9 +117,9 @@ function App() {
 								<Profile />
 							</ProtectedRoute>
 						}
-					/> */}
+					/>
 
-					{/* catch all route - redirect to home */}
+					{/* Catch all route - redirect to home */}
 					<Route path="*" element={<Navigate to="/" replace />} />
 				</Routes>
 			</div>

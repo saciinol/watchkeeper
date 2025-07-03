@@ -78,7 +78,7 @@ const Home = () => {
 					</div>
 				)}
 
-				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
 					{featuredMovies.map((movie) => (
 						<MovieCard key={movie.id || movie.tmdb_id} movie={movie} />
 					))}

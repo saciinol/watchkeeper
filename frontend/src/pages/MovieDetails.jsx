@@ -42,6 +42,12 @@ const MovieDetails = () => {
 	const userReview = currentMovie ? getUserReviewForMovie(currentMovie.id || id) : null;
 	const averageRating = currentMovie ? getAverageRating(currentMovie.id || id) : 0;
 
+	const statusLabels = {
+		want_to_watch: "Want to Watch",
+		watching: "Currently Watching",
+		completed: "Completed",
+	};
+
 	const handleAddToWatchlist = async (status = "want_to_watch") => {
 		if (!currentMovie) return;
 
@@ -58,7 +64,9 @@ const MovieDetails = () => {
 
 			if (watchlistItem) {
 				await updateWatchlistStatus(currentMovie.tmdb_id, status);
-				toast.success(`Updated to ${status.replace("_", " ")}`);
+				toast.success(
+					`Updated to ${statusLabels[status]}`
+				);
 			} else {
 				await addToWatchlist(movieData, status);
 				toast.success("Added to watchlist");
@@ -207,7 +215,7 @@ const MovieDetails = () => {
 								{watchlistItem && (
 									<span className={`badge ${getStatusColor(watchlistItem.status)}`}>
 										<BookmarkIcon className="w-3 h-3 mr-1" />
-										{watchlistItem.status.replace("_", " ")}
+										{statusLabels[watchlistItem.status]}
 									</span>
 								)}
 							</div>
