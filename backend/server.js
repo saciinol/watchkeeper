@@ -3,6 +3,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 
 import authRoutes from "./routes/authRoutes.js";
 import movieRoutes from "./routes/movieRoutes.js";
@@ -14,6 +15,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cors());
