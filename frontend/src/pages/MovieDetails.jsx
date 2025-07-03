@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMovieStore, useWatchlistStore, useReviewStore, useAuthStore } from "../store";
-import { ArrowLeftIcon, CalendarIcon, BookmarkIcon, EditIcon, TrashIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, BookmarkIcon, EditIcon, TrashIcon, Edit2Icon } from "lucide-react";
 import toast from "react-hot-toast";
 import { ComponentLoader } from "../components/LoadingSpinner";
 import EmptyState from "../components/EmptyState ";
@@ -322,6 +322,7 @@ const MovieDetails = () => {
 																setShowReviewForm(true);
 															}}
 														>
+                              <Edit2Icon className="w-4 h-4" />
 															Edit
 														</button>
 													</li>
