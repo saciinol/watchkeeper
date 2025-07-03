@@ -1,8 +1,10 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000" : "";
+
 const api = axios.create({
-	baseURL: "http://localhost:3000/api",
+	baseURL: `${BASE_URL}/api`,
 	timeout: 20000, // request timeout (10 seconds)
 	headers: {
 		"Content-Type": "application/json",

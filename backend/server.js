@@ -29,6 +29,16 @@ app.use("/api/movies", movieRoutes);
 app.use("/api/watchlist", watchlistRoutes);
 app.use("/api/reviews", reviewRoutes);
 
+if (process.env.NODE_ENV === "production") {
+	// Serve static files
+	app.use(express.static(path.join(__dirname, "/frontend/dist")));
+
+	// Handle client-side routing - use a more specific pattern
+	app.get(/.*/, (req, res) => {
+		res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+	});
+}
+
 async function initDB() {
 	try {
 		await sql`
