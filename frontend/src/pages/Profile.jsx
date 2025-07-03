@@ -136,19 +136,19 @@ const Profile = () => {
 			<div className="bg-base-200 rounded-lg p-6 mb-8">
 				<div className="flex items-center space-x-6">
 					<div className="avatar placeholder">
-						<div className="bg-primary text-primary-content rounded-full w-20 h-20">
-							<span className="text-2xl font-bold">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
+						<div className="bg-primary text-primary-content rounded-full w-10 h-10 sm:w-20 sm:h-20">
+							<span className="text-[14px] sm:text-xl font-bold">{user?.name?.charAt(0).toUpperCase() || "U"}</span>
 						</div>
 					</div>
 					<div className="flex-1">
-						<h1 className="text-3xl font-bold mb-2">{user?.name || "User"}</h1>
-						<div className="flex items-center space-x-4 text-base-content/70">
-							<div className="flex items-center space-x-1">
+						<h1 className="text-[16px] sm:text-xl font-bold mb-2">{user?.name || "User"}</h1>
+						<div className="flex items-center space-x-4 justify-between text-base-content/70">
+							<div className="text-[14px] sm:text-xl flex items-center space-x-1">
 								<MailIcon className="w-4 h-4" />
 								<span>{user?.email}</span>
 							</div>
 							{user?.created_at && (
-								<div className="flex items-center space-x-1">
+								<div className="text-[14px] sm:text-xl flex items-center space-x-1">
 									<CalendarIcon className="w-4 h-4" />
 									<span>Joined {formatDate(user.created_at)}</span>
 								</div>
