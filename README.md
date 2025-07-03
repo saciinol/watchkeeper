@@ -55,7 +55,8 @@ cd watchkeeper
 
 ### 4. Run the App
 
-```npm run dev
+```bash
+npm run dev
 cd frontend
 npm run dev
 ```
