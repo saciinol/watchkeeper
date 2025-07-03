@@ -19,7 +19,7 @@ const MovieCard = ({ movie }) => {
 		completed: "Completed",
 	};
 
-	const handleAddToWatchlist = async (status) => {
+	const handleAddToWatchlist = async (status, event) => {
 		if (!isAuthenticated) {
 			toast.error("Please login to add movies to your watchlist");
 			return;
@@ -39,13 +39,12 @@ const MovieCard = ({ movie }) => {
 		try {
 			if (watchlistItem) {
 				await updateWatchlistStatus(movie.tmdb_id, status);
-				toast.success(
-					`Updated to ${statusLabels[status]}`
-				);
+				toast.success(`Updated to ${statusLabels[status]}`);
 			} else {
 				await addToWatchlist(movieData, status);
 				toast.success("Added to watchlist");
 			}
+			event.target.closest('button').blur(); // Close dropdown
 		} catch (error) {
 			toast.error(error.message || "Failed to update watchlist");
 		} finally {
@@ -82,9 +81,7 @@ const MovieCard = ({ movie }) => {
 					<div className="mb-2">
 						<span className={`py-2.5 badge badge-sm ${getStatusBadgeColor(watchlistItem.status)}`}>
 							{getStatusIcon(watchlistItem.status)}
-							<span className="ml-1">
-								{statusLabels[watchlistItem.status]}
-							</span>
+							<span className="ml-1">{statusLabels[watchlistItem.status]}</span>
 						</span>
 					</div>
 				)}
@@ -101,13 +98,13 @@ const MovieCard = ({ movie }) => {
 							</button>
 							<ul className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mb-2">
 								<li>
-									<button onClick={() => handleAddToWatchlist("want_to_watch")}>Want to Watch</button>
+									<button onClick={(e) => handleAddToWatchlist("want_to_watch", e)}>Want to Watch</button>
 								</li>
 								<li>
-									<button onClick={() => handleAddToWatchlist("watching")}>Currently Watching</button>
+									<button onClick={(e) => handleAddToWatchlist("watching", e)}>Currently Watching</button>
 								</li>
 								<li>
-									<button onClick={() => handleAddToWatchlist("completed")}>Completed</button>
+									<button onClick={(e) => handleAddToWatchlist("completed", e)}>Completed</button>
 								</li>
 							</ul>
 						</div>

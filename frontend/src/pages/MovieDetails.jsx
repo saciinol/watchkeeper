@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import { ComponentLoader } from "../components/LoadingSpinner";
 import EmptyState from "../components/EmptyState ";
 import StarRating from "../components/StarRating";
-import ReviewCard from "../components/ReviewCard";
 import { getStatusBadgeColor } from "../utils/getStatusBadgeColor";
 import { getStatusIcon } from "../utils/getStatusIcon";
 
@@ -54,7 +53,7 @@ const MovieDetails = () => {
 		completed: "Completed",
 	};
 
-	const handleAddToWatchlist = async (status = "want_to_watch") => {
+	const handleAddToWatchlist = async (status, event) => {
 		if (!currentMovie) return;
 
 		setIsAddingToWatchlist(true);
@@ -75,6 +74,7 @@ const MovieDetails = () => {
 				await addToWatchlist(movieData, status);
 				toast.success("Added to watchlist");
 			}
+			event.target.closest('button').blur(); // Close dropdown
 		} catch (error) {
 			toast.error(error.message || "Failed to update watchlist");
 		} finally {
@@ -88,7 +88,6 @@ const MovieDetails = () => {
 
 		try {
 			await submitReview(currentMovie.id || id, reviewData.rating, reviewData.comment, user.id, user.name);
-
 			toast.success(userReview ? "Review updated!" : "Review submitted!");
 			setShowReviewForm(false);
 			setReviewData({ rating: 5, comment: "" });
@@ -97,13 +96,14 @@ const MovieDetails = () => {
 		}
 	};
 
-	const handleDeleteReview = async () => {
+	const handleDeleteReview = async (event) => {
 		if (!userReview || !currentMovie) return;
 
 		if (confirm("Are you sure you want to delete your review?")) {
 			try {
 				await deleteReview(userReview.id, currentMovie.id || id);
 				toast.success("Review deleted");
+				event.target.closest('button').blur(); // Close dropdown
 			} catch (error) {
 				toast.error(error.message || "Failed to delete review");
 			}
@@ -131,15 +131,12 @@ const MovieDetails = () => {
 
 	return (
 		<div className="container mx-auto px-4 py-8">
-			{/* Back Button */}
 			<button onClick={() => navigate(-1)} className="btn btn-ghost mb-6">
 				<ArrowLeftIcon className="w-4 h-4 mr-2" />
 				Back
 			</button>
 
-			{/* Movie Details */}
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-				{/* Poster */}
 				<div className="lg:col-span-1">
 					<div className="aspect-[2/3] overflow-hidden rounded-lg shadow-lg">
 						{currentMovie.poster_url ? (
@@ -152,7 +149,6 @@ const MovieDetails = () => {
 					</div>
 				</div>
 
-				{/* Movie Info */}
 				<div className="lg:col-span-2">
 					<div className="flex flex-col h-full">
 						<div className="flex-1">
@@ -166,12 +162,10 @@ const MovieDetails = () => {
 								)}
 							</div>
 
-							{/* Rating & Watchlist Status */}
 							<div className="flex flex-wrap items-center gap-4 mb-4">
 								{averageRating > 0 && (
 									<div className="flex items-center gap-2">
 										<StarRating rating={Math.round(averageRating)} />
-
 										<span className="text-sm text-base-content/70">
 											{averageRating} ({reviews.length} review{reviews.length !== 1 ? "s" : ""})
 										</span>
@@ -186,7 +180,6 @@ const MovieDetails = () => {
 								)}
 							</div>
 
-							{/* Plot */}
 							{currentMovie.plot && (
 								<div className="mb-6">
 									<h3 className="text-lg font-semibold mb-2">Plot</h3>
@@ -195,7 +188,6 @@ const MovieDetails = () => {
 							)}
 						</div>
 
-						{/* Action Buttons */}
 						<div className="flex flex-wrap gap-3">
 							<div className="dropdown dropdown-top">
 								<button
@@ -208,13 +200,13 @@ const MovieDetails = () => {
 								</button>
 								<ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mb-2">
 									<li>
-										<button onClick={() => handleAddToWatchlist("want_to_watch")}>Want to Watch</button>
+										<button onClick={(e) => handleAddToWatchlist("want_to_watch", e)}>Want to Watch</button>
 									</li>
 									<li>
-										<button onClick={() => handleAddToWatchlist("watching")}>Currently Watching</button>
+										<button onClick={(e) => handleAddToWatchlist("watching", e)}>Currently Watching</button>
 									</li>
 									<li>
-										<button onClick={() => handleAddToWatchlist("completed")}>Completed</button>
+										<button onClick={(e) => handleAddToWatchlist("completed", e)}>Completed</button>
 									</li>
 								</ul>
 							</div>
@@ -228,12 +220,11 @@ const MovieDetails = () => {
 				</div>
 			</div>
 
-			{/* Review Form */}
 			{showReviewForm && (
 				<div className="card bg-base-200 mb-8">
 					<div className="card-body">
 						<h3 className="card-title">{userReview ? "Edit Your Review" : "Write a Review"}</h3>
-						<form onSubmit={handleReviewSubmit} className="space-y-4">
+						<form onSubmit={handleReviewSubmit} className="bs-300">
 							<div>
 								<label className="label">
 									<span className="label-text">Rating</span>
@@ -275,7 +266,6 @@ const MovieDetails = () => {
 				</div>
 			)}
 
-			{/* Reviews Section */}
 			<div className="card bg-base-100 shadow-md">
 				<div className="card-body">
 					<h3 className="card-title mb-4">Reviews ({reviews.length})</h3>
@@ -298,7 +288,7 @@ const MovieDetails = () => {
 											<div>
 												<p className="font-medium">{review.user_name}</p>
 												<div className="flex items-center gap-2">
-													<StarRating rating={review.rating} />{" "}
+													<StarRating rating={review.rating} />
 													<span className="text-sm text-base-content/70">
 														{new Date(review.created_at).toLocaleDateString()}
 													</span>
@@ -308,7 +298,7 @@ const MovieDetails = () => {
 
 										{review.user_id === user?.id && (
 											<div className="dropdown dropdown-end">
-												<button className="btn btn-ghost btn-sm btn-circle">
+												<button className="btn btn-ghost btn-sm btn-circle" tabIndex={0}>
 													<EditIcon className="w-4 h-4" />
 												</button>
 												<ul className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
@@ -322,12 +312,12 @@ const MovieDetails = () => {
 																setShowReviewForm(true);
 															}}
 														>
-                              <Edit2Icon className="w-4 h-4" />
+															<Edit2Icon className="w-4 h-4" />
 															Edit
 														</button>
 													</li>
 													<li>
-														<button onClick={handleDeleteReview} className="text-error">
+														<button onClick={(e) => handleDeleteReview(e)} className="text-error">
 															<TrashIcon className="w-4 h-4" />
 															Delete
 														</button>

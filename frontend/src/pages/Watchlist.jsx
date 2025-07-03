@@ -26,6 +26,7 @@ const Watchlist = () => {
 
 	const [activeTab, setActiveTab] = useState("all");
 	const [removingId, setRemovingId] = useState(null);
+	const [updatingId, setUpdatingId] = useState(null);
 
 	useEffect(() => {
 		if (user?.id) {
@@ -51,12 +52,16 @@ const Watchlist = () => {
 		completed: "Completed",
 	};
 
-	const handleStatusChange = async (movie, newStatus) => {
+	const handleStatusChange = async (movie, newStatus, event) => {
+		setUpdatingId(movie.tmdb_id);
 		try {
 			await updateWatchlistStatus(movie.tmdb_id, newStatus);
 			toast.success(`Updated to ${statusLabels[newStatus]}`);
+			event.target.closest("button").blur(); // Close dropdown
 		} catch (error) {
 			toast.error(error.message || "Failed to update status");
+		} finally {
+			setUpdatingId(null);
 		}
 	};
 
@@ -90,7 +95,6 @@ const Watchlist = () => {
 				<p className="text-base-content/70">Keep track of movies you want to watch, are watching, or have completed</p>
 			</div>
 
-			{/* Tabs */}
 			<Tabs
 				active={activeTab}
 				onChange={setActiveTab}
@@ -102,7 +106,6 @@ const Watchlist = () => {
 				]}
 			/>
 
-			{/* Movies Grid */}
 			{filteredMovies.length === 0 ? (
 				<EmptyState
 					icon={<BookmarkIcon className="w-16 h-16 mx-auto text-base-content/50 mb-4" />}
@@ -144,60 +147,61 @@ const Watchlist = () => {
 									</span>
 								</div>
 
-								<div className="card-actions justify-between items-center">
-									{/* Status Update Dropdown */}
-									<div className="dropdown dropdown-top">
-										<button className="btn btn-sm btn-outline" tabIndex={0}>
-											Update Status
-										</button>
-										<ul
-											tabIndex={0}
-											className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mb-2"
-										>
-											<li>
-												<button onClick={() => handleStatusChange(movie, "want_to_watch")}>
-													<BookmarkIcon className="w-4 h-4" />
-													Want to Watch
-												</button>
-											</li>
-											<li>
-												<button onClick={() => handleStatusChange(movie, "watching")}>
-													<PlayIcon className="w-4 h-4" />
-													Currently Watching
-												</button>
-											</li>
-											<li>
-												<button onClick={() => handleStatusChange(movie, "completed")}>
-													<CheckCircleIcon className="w-4 h-4" />
-													Completed
-												</button>
-											</li>
-										</ul>
-									</div>
+								 <div className="card-actions justify-between items-center">
+                                    <div className="dropdown dropdown-top">
+                                        <button
+                                            className={`btn btn-sm btn-outline ${updatingId === movie.tmdb_id ? "loading" : ""}`}
+                                            tabIndex={0}
+                                            disabled={updatingId === movie.tmdb_id}
+                                        >
+                                            Update Status
+                                        </button>
+                                        <ul
+                                            tabIndex={0}
+                                            className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mb-2"
+                                        >
+                                            <li>
+                                                <button onClick={(e) => handleStatusChange(movie, "want_to_watch", e)}>
+                                                    <BookmarkIcon className="w-4 h-4" />
+                                                    Want to Watch
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button onClick={(e) => handleStatusChange(movie, "watching", e)}>
+                                                    <PlayIcon className="w-4 h-4" />
+                                                    Currently Watching
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button onClick={(e) => handleStatusChange(movie, "completed", e)}>
+                                                    <CheckCircleIcon className="w-4 h-4" />
+                                                    Completed
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
 
-									{/* Remove Button */}
-									<button
-										className={`btn btn-sm btn-error btn-outline ${removingId === movie.movie_id ? "loading" : ""}`}
-										onClick={() => handleRemoveFromWatchlist(movie.movie_id)}
-										disabled={removingId === movie.movie_id}
-									>
-										{removingId !== movie.movie_id && <TrashIcon className="w-4 h-4" />}
-									</button>
-								</div>
+                                    <button
+                                        className={`btn btn-sm btn-error btn-outline ${removingId === movie.movie_id ? "loading" : ""}`}
+                                        onClick={() => handleRemoveFromWatchlist(movie.movie_id)}
+                                        disabled={removingId === movie.movie_id}
+                                    >
+                                        {removingId !== movie.movie_id && <TrashIcon className="w-4 h-4" />}
+                                    </button>
+                                </div>
 
-								{/* Movie Details Link */}
-								<div className="mt-2">
-									<Link to={`/movie/${movie.movie_id}`} className="btn btn-sm btn-ghost w-full">
-										View Details
-									</Link>
-								</div>
-							</div>
-						</div>
-					))}
-				</div>
-			)}
-		</div>
-	);
+                                <div className="mt-2">
+                                    <Link to={`/movie/${movie.movie_id}`} className="btn btn-sm btn-ghost w-full">
+                                        View Details
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default Watchlist;
