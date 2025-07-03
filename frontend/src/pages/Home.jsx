@@ -4,7 +4,9 @@ import { useMovieStore } from "../store";
 import { movieService } from "../services/movieService";
 import { RefreshCwIcon } from "lucide-react";
 import MovieCard from "../components/MovieCard";
+import { ComponentLoader, MovieCardSkeleton } from "../components/LoadingSpinner";
 import toast from "react-hot-toast";
+import ErrorAlert from "../components/ErrorAlert";
 
 const Home = () => {
 	const { savedMovies, setSavedMovies, isLoading, error, setLoading, setError } = useMovieStore();
@@ -66,24 +68,28 @@ const Home = () => {
 					)}
 				</div>
 
+				{/* Loading State with Movie Card Skeletons */}
 				{isLoading && (
-					<div className="flex justify-center">
-						<span className="loading loading-spinner loading-lg"></span>
+					<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+						{Array.from({ length: 10 }).map((_, index) => (
+							<MovieCardSkeleton key={index} />
+						))}
 					</div>
 				)}
 
-				{error && (
-					<div className="alert alert-error">
-						<span>{error}</span>
+				{/* Error State */}
+				<ErrorAlert message={error} />
+
+				{/* Movies Grid */}
+				{!isLoading && !error && (
+					<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+						{featuredMovies.map((movie) => (
+							<MovieCard key={movie.id || movie.tmdb_id} movie={movie} />
+						))}
 					</div>
 				)}
 
-				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-					{featuredMovies.map((movie) => (
-						<MovieCard key={movie.id || movie.tmdb_id} movie={movie} />
-					))}
-				</div>
-
+				{/* Empty State */}
 				{savedMovies.length === 0 && !isLoading && !error && (
 					<div className="text-center py-8">
 						<p className="text-gray-500">No movies to display yet.</p>

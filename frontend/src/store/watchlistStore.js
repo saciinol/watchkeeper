@@ -110,7 +110,7 @@ const useWatchlistStore = create((set, get) => ({
 
 			// Update local state
 			const { watchlist } = get();
-			const updatedWatchlist = watchlist.filter((w) => w.id !== movieId);
+			const updatedWatchlist = watchlist.filter((w) => w.movie_id !== movieId);
 
 			set({ watchlist: updatedWatchlist });
 		} catch (error) {

@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../services/authService";
 import { validateRegistrationForm, sanitizeInput } from "../utils/validation";
+import { ComponentLoader } from "../components/LoadingSpinner";
 import toast from "react-hot-toast";
+import PasswordToggleIcon from "../components/PasswordToggleIcon";
 
 const Register = () => {
 	const [formData, setFormData] = useState({
@@ -50,9 +52,7 @@ const Register = () => {
 			return;
 		}
 
-		// clear validation errors if form is valid
 		setValidationErrors({});
-
 		setIsLoading(true);
 
 		try {
@@ -72,6 +72,15 @@ const Register = () => {
 			setIsLoading(false);
 		}
 	};
+
+	// Show loading overlay while submitting
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-base-200">
+				<ComponentLoader />
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-base-200">
@@ -134,13 +143,11 @@ const Register = () => {
 									placeholder="Enter your password"
 									required
 								/>
-								<button
-									type="button"
-									className="absolute right-3 top-1/2 transform -translate-y-1/2"
+								<PasswordToggleIcon
+									show={showPassword}
 									onClick={() => setShowPassword(!showPassword)}
-								>
-									{showPassword ? "👁️" : "👁️‍🗨️"}
-								</button>
+									disabled={isLoading}
+								/>
 							</div>
 							{validationErrors.password && (
 								<label className="label">
@@ -184,7 +191,7 @@ const Register = () => {
 					<div className="text-center">
 						<p className="text-sm">
 							Already have an account?{" "}
-							<Link to="/login" className="link link-primary">
+							<Link to="/login" className={`link link-primary ${isLoading ? "pointer-events-none opacity-50" : ""}`}>
 								Login here
 							</Link>
 						</p>

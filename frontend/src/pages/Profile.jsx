@@ -10,6 +10,9 @@ import {
 	PlayIcon,
 	CheckCircleIcon,
 } from "lucide-react";
+import Tabs from "../components/Tabs";
+import EmptyState from "../components/EmptyState ";
+import { ComponentLoader } from "../components/LoadingSpinner";
 
 const Profile = () => {
 	const { user } = useAuthStore();
@@ -84,10 +87,10 @@ const Profile = () => {
 		return (
 			<div className="space-y-4">
 				{combinedActivity.length === 0 ? (
-					<div className="text-center py-8">
-						<FilmIcon className="w-12 h-12 mx-auto text-base-content/50 mb-2" />
-						<p className="text-base-content/70">No recent activity</p>
-					</div>
+					<EmptyState
+						icon={<FilmIcon className="w-12 h-12 mx-auto text-base-content/50 mb-2" />}
+						title="No recent activity"
+					/>
 				) : (
 					combinedActivity.map((activity, index) => (
 						<div key={index} className="flex items-center space-x-4 p-4 bg-base-100 rounded-lg shadow-sm">
@@ -123,6 +126,10 @@ const Profile = () => {
 		);
 	};
 
+	if (!user || !watchlist || !userReviews) {
+		return <ComponentLoader size="lg" />;
+	}
+
 	return (
 		<div className="container mx-auto px-4 py-8">
 			{/* Profile Header */}
@@ -152,20 +159,14 @@ const Profile = () => {
 			</div>
 
 			{/* Tabs */}
-			<div className="tabs tabs-boxed mb-6 w-fit">
-				<button
-					className={`tab ${activeTab === "overview" ? "tab-active" : ""}`}
-					onClick={() => setActiveTab("overview")}
-				>
-					Overview
-				</button>
-				<button
-					className={`tab ${activeTab === "activity" ? "tab-active" : ""}`}
-					onClick={() => setActiveTab("activity")}
-				>
-					Recent Activity
-				</button>
-			</div>
+			<Tabs
+				active={activeTab}
+				onChange={setActiveTab}
+				tabs={[
+					{ value: "overview", label: "Overview" },
+					{ value: "activity", label: "Recent Activity" },
+				]}
+			/>
 
 			{/* Tab Content */}
 			{activeTab === "overview" && (
@@ -231,7 +232,11 @@ const Profile = () => {
 											<div className="avatar">
 												<div className="w-16 h-16 rounded-lg">
 													{review.poster_url ? (
-														<img src={review.poster_url} alt={review.title} className="w-full h-full object-cover" />
+														<img
+															src={review.poster_url}
+															alt={review.movie_title}
+															className="w-full h-full object-cover"
+														/>
 													) : (
 														<div className="w-full h-full bg-base-300 flex items-center justify-center">
 															<FilmIcon className="w-6 h-6 text-base-content/50" />
@@ -241,15 +246,22 @@ const Profile = () => {
 											</div>
 											<div className="flex-1">
 												<div className="flex items-center justify-between mb-2">
-													<h3 className="font-semibold">{review.title}</h3>
+													<h3 className="font-semibold">{review.movie_title}</h3>
 													<div className="flex items-center space-x-1">
 														<StarIcon className="w-4 h-4 text-yellow-500 fill-current" />
 														<span className="font-medium">{review.rating}/5</span>
 													</div>
 												</div>
-												{review.comment && (
-													<p className="text-sm text-base-content/70 line-clamp-2">{review.comment}</p>
-												)}
+												<div className="flex items-center justify-between mb-2">
+													{review.comment && (
+														<p className="text-sm text-base-content/70 line-clamp-2">{review.comment}</p>
+													)}
+													<div className="flex items-center space-x-1">
+														{review.created_at && (
+															<p className="text-xs text-base-content/50 mt-1">{formatDate(review.created_at)}</p>
+														)}
+													</div>
+												</div>
 											</div>
 										</div>
 									))}

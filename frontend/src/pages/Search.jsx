@@ -3,26 +3,29 @@ import { useMovieStore } from "../store";
 import { SearchIcon, XIcon } from "lucide-react";
 import MovieCard from "../components/MovieCard";
 import toast from "react-hot-toast";
+import { ComponentLoader, MovieCardSkeleton } from "../components/LoadingSpinner";
+import ErrorAlert from "../components/ErrorAlert";
+import EmptyState from "../components/EmptyState ";
 
 const Search = () => {
 	const [localQuery, setLocalQuery] = useState("");
 	const { searchResults, searchQuery, isSearching, error, searchMovies, clearSearch, setSearchQuery } = useMovieStore();
 
-  const handleSearch = useCallback(
-    async (query) => {
-      if (!query.trim()) return;
+	const handleSearch = useCallback(
+		async (query) => {
+			if (!query.trim()) return;
 
-      try {
-        await searchMovies(query);
-      } catch (error) {
-        toast.error(error.message || "Failed to search movies");
-      }
-    },
-    [searchMovies]
-  );
-  
+			try {
+				await searchMovies(query);
+			} catch (error) {
+				toast.error(error.message || "Failed to search movies");
+			}
+		},
+		[searchMovies]
+	);
+
 	// debounced search function
-		useEffect(() => {
+	useEffect(() => {
 		if (localQuery.trim()) {
 			const timeoutId = setTimeout(() => {
 				handleSearch(localQuery);
@@ -33,7 +36,6 @@ const Search = () => {
 			clearSearch();
 		}
 	}, [localQuery, clearSearch, handleSearch]);
-
 
 	const handleInputChange = (e) => {
 		setLocalQuery(e.target.value);
@@ -107,20 +109,15 @@ const Search = () => {
 
 			{/* Loading State */}
 			{isSearching && (
-				<div className="flex justify-center py-12">
-					<div className="text-center">
-						<span className="loading loading-spinner loading-lg"></span>
-						<p className="mt-4 text-base-content/70">Searching movies...</p>
-					</div>
+				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+					{Array.from({ length: 10 }).map((_, index) => (
+						<MovieCardSkeleton key={index} />
+					))}
 				</div>
 			)}
 
 			{/* Error State */}
-			{error && (
-				<div className="alert alert-error max-w-2xl mx-auto mb-8">
-					<span>{error}</span>
-				</div>
-			)}
+			<ErrorAlert message={error} />
 
 			{/* Search Results */}
 			{!isSearching && searchResults.length > 0 && (
@@ -153,11 +150,11 @@ const Search = () => {
 			{!searchQuery && !isSearching && (
 				<div className="text-center py-12">
 					<div className="max-w-md mx-auto">
-						<SearchIcon className="w-16 h-16 mx-auto text-base-content/30 mb-4" />
-						<h3 className="text-xl font-semibold mb-2">Start Searching</h3>
-						<p className="text-base-content/70">
-							Enter a movie title above to start discovering new movies to add to your watchlist.
-						</p>
+						<EmptyState
+							icon={<SearchIcon className="w-16 h-16 mx-auto text-base-content/30" />}
+							title="Start Searching"
+							message="Enter a movie title above to start discovering new movies to add to your watchlist."
+						/>
 					</div>
 				</div>
 			)}

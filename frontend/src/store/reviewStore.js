@@ -79,7 +79,7 @@ const useReviewStore = create((set, get) => ({
 		}
 	},
 
-	submitReview: async (movieId, rating, comment) => {
+	submitReview: async (movieId, rating, comment, userId, userName) => {
 		set({ isSubmitting: true, error: null });
 
 		try {
@@ -87,6 +87,8 @@ const useReviewStore = create((set, get) => ({
 				movie_id: movieId,
 				rating,
 				comment,
+        user_id: userId,
+        user_name: userName,
 			});
 
 			// update movie reviews

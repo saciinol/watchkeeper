@@ -21,25 +21,50 @@ export const upsertReview = async (req, res) => {
 	}
 
 	try {
-		const result = await sql`
+
+    const upsertResult = await sql`
       INSERT INTO reviews (user_id, movie_id, rating, comment)
       VALUES (${user_id}, ${movie_id}, ${rating}, ${comment})
       ON CONFLICT (user_id, movie_id)
       DO UPDATE SET rating = ${rating}, comment = ${comment}
-      RETURNING *;
+      RETURNING id; 
     `;
 
-		res.status(200).json({
-			success: true,
-			data: result[0],
-		});
-	} catch (error) {
-		console.error("Review upsert error:", error.message);
-		res.status(500).json({
-			success: false,
-			message: "Failed to save review",
-		});
-	}
+    if (upsertResult.length === 0 || !upsertResult[0].id) {
+      console.error("Review upsert failed: No ID returned after insert/update.");
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save review: No review ID generated.",
+      });
+    }
+
+    const reviewId = upsertResult[0].id;
+
+    const reviewWithUserName = await sql`
+      SELECT r.*, u.name AS user_name
+      FROM reviews r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.id = ${reviewId};
+    `;
+
+    if (reviewWithUserName.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Review not found after upsert operation.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: reviewWithUserName[0],
+    });
+  } catch (error) {
+    console.error("Review upsert error:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to save review",
+    });
+  }
 };
 
 // get all reviews for a movie

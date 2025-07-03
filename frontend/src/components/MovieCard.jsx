@@ -3,6 +3,8 @@ import { useAuthStore, useWatchlistStore } from "../store";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { BookmarkIcon, CheckCircleIcon, PlayIcon } from "lucide-react";
+import { getStatusBadgeColor } from "../utils/getStatusBadgeColor";
+import { getStatusIcon } from "../utils/getStatusIcon";
 
 const MovieCard = ({ movie }) => {
 	const [isAdding, setIsAdding] = useState(false);
@@ -51,32 +53,6 @@ const MovieCard = ({ movie }) => {
 		}
 	};
 
-	const getStatusIcon = (status) => {
-		switch (status) {
-			case "want_to_watch":
-				return <BookmarkIcon className="w-4 h-4" />;
-			case "watching":
-				return <PlayIcon className="w-4 h-4" />;
-			case "completed":
-				return <CheckCircleIcon className="w-4 h-4" />;
-			default:
-				return <BookmarkIcon className="w-4 h-4" />;
-		}
-	};
-
-	const getStatusColor = (status) => {
-		switch (status) {
-			case "want_to_watch":
-				return "badge-secondary";
-			case "watching":
-				return "badge-primary";
-			case "completed":
-				return "badge-success";
-			default:
-				return "badge-ghost";
-		}
-	};
-
 	return (
 		<div className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
 			<figure className="aspect-[2/3] overflow-hidden">
@@ -104,7 +80,7 @@ const MovieCard = ({ movie }) => {
 
 				{watchlistItem && (
 					<div className="mb-2">
-						<span className={`badge badge-sm ${getStatusColor(watchlistItem.status)}`}>
+						<span className={`py-2.5 badge badge-sm ${getStatusBadgeColor(watchlistItem.status)}`}>
 							{getStatusIcon(watchlistItem.status)}
 							<span className="ml-1">
 								{statusLabels[watchlistItem.status]}

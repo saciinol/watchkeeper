@@ -3,7 +3,9 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store";
 import { loginUser } from "../services/authService";
 import { validateLoginForm, sanitizeInput } from "../utils/validation";
+import { ComponentLoader } from "../components/LoadingSpinner";
 import toast from "react-hot-toast";
+import PasswordToggleIcon from "../components/PasswordToggleIcon";
 
 const Login = () => {
 	const [formData, setFormData] = useState({
@@ -12,6 +14,7 @@ const Login = () => {
 	});
 	const [showPassword, setShowPassword] = useState(false);
 	const [validationErrors, setValidationErrors] = useState({});
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const { login, isLoading, error } = useAuthStore();
 	const navigate = useNavigate();
@@ -38,6 +41,7 @@ const Login = () => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		setIsSubmitting(true);
 
 		const validation = validateLoginForm(formData);
 
@@ -48,6 +52,7 @@ const Login = () => {
 			if (firstError && firstError.length > 0) {
 				toast.error(firstError[0]);
 			}
+			setIsSubmitting(false);
 			return;
 		}
 
@@ -66,8 +71,19 @@ const Login = () => {
 			}
 		} catch (error) {
 			toast.error(error.message || "Login Failed");
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
+
+	// Show loading overlay while authenticating
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-base-200">
+				<ComponentLoader />
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-base-200">
@@ -94,6 +110,7 @@ const Login = () => {
 								className={`input input-bordered ${validationErrors.email ? "input-error" : ""}`}
 								placeholder="Enter your email"
 								required
+								disabled={isSubmitting}
 							/>
 							{validationErrors.email && (
 								<label className="label">
@@ -116,14 +133,13 @@ const Login = () => {
 									className={`input input-bordered w-full pr-10 ${validationErrors.password ? "input-error" : ""}`}
 									placeholder="Enter your password"
 									required
+									disabled={isSubmitting}
 								/>
-								<button
-									type="button"
-									className="absolute right-3 top-1/2 transform -translate-y-1/2"
+								<PasswordToggleIcon
+									show={showPassword}
 									onClick={() => setShowPassword(!showPassword)}
-								>
-									{showPassword ? "👁️" : "👁️‍🗨️"}
-								</button>
+									disabled={isSubmitting}
+								/>
 							</div>
 							{validationErrors.password && (
 								<label className="label">
@@ -133,8 +149,12 @@ const Login = () => {
 						</div>
 
 						<div className="form-control mt-6">
-							<button type="submit" className={`btn btn-primary ${isLoading ? "loading" : ""}`} disabled={isLoading}>
-								{isLoading ? "Logging in..." : "Login"}
+							<button
+								type="submit"
+								className={`btn btn-primary ${isSubmitting ? "loading" : ""}`}
+								disabled={isSubmitting}
+							>
+								{isSubmitting ? "Logging in..." : "Login"}
 							</button>
 						</div>
 					</form>
@@ -144,7 +164,10 @@ const Login = () => {
 					<div className="text-center">
 						<p className="text-sm">
 							Don't have an account?{" "}
-							<Link to="/register" className="link link-primary">
+							<Link
+								to="/register"
+								className={`link link-primary ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
+							>
 								Sign up here
 							</Link>
 						</p>

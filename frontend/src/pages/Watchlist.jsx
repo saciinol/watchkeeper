@@ -3,6 +3,12 @@ import { useAuthStore, useWatchlistStore } from "../store";
 import { BookmarkIcon, PlayIcon, CheckCircleIcon, TrashIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import { ComponentLoader } from "../components/LoadingSpinner";
+import ErrorAlert from "../components/ErrorAlert";
+import EmptyState from "../components/EmptyState ";
+import { getStatusBadgeColor } from "../utils/getStatusBadgeColor";
+import { getStatusIcon } from "../utils/getStatusIcon";
+import Tabs from "../components/Tabs";
 
 const Watchlist = () => {
 	const { user } = useAuthStore();
@@ -47,38 +53,10 @@ const Watchlist = () => {
 
 	const handleStatusChange = async (movie, newStatus) => {
 		try {
-			await updateWatchlistStatus(movie.id, newStatus);
-			toast.success(
-				`Updated to ${statusLabels[newStatus]}`
-			);
+			await updateWatchlistStatus(movie.tmdb_id, newStatus);
+			toast.success(`Updated to ${statusLabels[newStatus]}`);
 		} catch (error) {
 			toast.error(error.message || "Failed to update status");
-		}
-	};
-
-	const getStatusIcon = (status) => {
-		switch (status) {
-			case "want_to_watch":
-				return <BookmarkIcon className="w-4 h-4" />;
-			case "watching":
-				return <PlayIcon className="w-4 h-4" />;
-			case "completed":
-				return <CheckCircleIcon className="w-4 h-4" />;
-			default:
-				return <BookmarkIcon className="w-4 h-4" />;
-		}
-	};
-
-	const getStatusColor = (status) => {
-		switch (status) {
-			case "want_to_watch":
-				return "badge-secondary";
-			case "watching":
-				return "badge-primary";
-			case "completed":
-				return "badge-success";
-			default:
-				return "badge-ghost";
 		}
 	};
 
@@ -98,23 +76,11 @@ const Watchlist = () => {
 	const filteredMovies = getFilteredMovies();
 
 	if (isLoading) {
-		return (
-			<div className="container mx-auto px-4 py-8">
-				<div className="flex justify-center items-center min-h-64">
-					<span className="loading loading-spinner loading-lg"></span>
-				</div>
-			</div>
-		);
+		return <ComponentLoader size="lg" />;
 	}
 
 	if (error) {
-		return (
-			<div className="container mx-auto px-4 py-8">
-				<div className="alert alert-error">
-					<span>{error}</span>
-				</div>
-			</div>
-		);
+		return <ErrorAlert message={error} />;
 	}
 
 	return (
@@ -125,44 +91,30 @@ const Watchlist = () => {
 			</div>
 
 			{/* Tabs */}
-			<div className="tabs tabs-boxed mb-6 w-fit">
-				<button className={`tab ${activeTab === "all" ? "tab-active" : ""}`} onClick={() => setActiveTab("all")}>
-					All ({watchlist.length})
-				</button>
-				<button
-					className={`tab ${activeTab === "want_to_watch" ? "tab-active" : ""}`}
-					onClick={() => setActiveTab("want_to_watch")}
-				>
-					Want to Watch ({getWantToWatch().length})
-				</button>
-				<button
-					className={`tab ${activeTab === "watching" ? "tab-active" : ""}`}
-					onClick={() => setActiveTab("watching")}
-				>
-					Watching ({getWatching().length})
-				</button>
-				<button
-					className={`tab ${activeTab === "completed" ? "tab-active" : ""}`}
-					onClick={() => setActiveTab("completed")}
-				>
-					Completed ({getCompleted().length})
-				</button>
-			</div>
+			<Tabs
+				active={activeTab}
+				onChange={setActiveTab}
+				tabs={[
+					{ value: "all", label: `All (${watchlist.length})` },
+					{ value: "want_to_watch", label: `Want to Watch (${getWantToWatch().length})` },
+					{ value: "watching", label: `Watching (${getWatching().length})` },
+					{ value: "completed", label: `Completed (${getCompleted().length})` },
+				]}
+			/>
 
 			{/* Movies Grid */}
 			{filteredMovies.length === 0 ? (
-				<div className="text-center py-12">
-					<BookmarkIcon className="w-16 h-16 mx-auto text-base-content/50 mb-4" />
-					<h2 className="text-xl font-semibold mb-2">No movies in this category</h2>
-					<p className="text-base-content/70 mb-4">
-						{activeTab === "all"
+				<EmptyState
+					icon={<BookmarkIcon className="w-16 h-16 mx-auto text-base-content/50 mb-4" />}
+					title="No movies in this category"
+					message={
+						activeTab === "all"
 							? "Start building your watchlist by searching for movies!"
-							: `No movies in "${statusLabels[activeTab]}" status.`}
-					</p>
-					<Link to="/search" className="btn btn-primary">
-						Search Movies
-					</Link>
-				</div>
+							: `No movies in "${statusLabels[activeTab]}" status.`
+					}
+					buttonLabel="Search Movies"
+					buttonLink="/search"
+				/>
 			) : (
 				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
 					{filteredMovies.map((movie) => (
@@ -186,11 +138,9 @@ const Watchlist = () => {
 								{movie.plot && <p className="text-xs text-base-content/70 line-clamp-3 mb-3">{movie.plot}</p>}
 
 								<div className="mb-3">
-									<span className={`badge badge-sm ${getStatusColor(movie.status)}`}>
+									<span className={`py-2.5 badge badge-sm ${getStatusBadgeColor(movie.status)}`}>
 										{getStatusIcon(movie.status)}
-										<span className="ml-1">
-											{statusLabels[movie.status]}
-										</span>
+										<span className="ml-1">{statusLabels[movie.status]}</span>
 									</span>
 								</div>
 
@@ -227,11 +177,11 @@ const Watchlist = () => {
 
 									{/* Remove Button */}
 									<button
-										className={`btn btn-sm btn-error btn-outline ${removingId === movie.id ? "loading" : ""}`}
-										onClick={() => handleRemoveFromWatchlist(movie.id)}
-										disabled={removingId === movie.id}
+										className={`btn btn-sm btn-error btn-outline ${removingId === movie.movie_id ? "loading" : ""}`}
+										onClick={() => handleRemoveFromWatchlist(movie.movie_id)}
+										disabled={removingId === movie.movie_id}
 									>
-										{removingId !== movie.id && <TrashIcon className="w-4 h-4" />}
+										{removingId !== movie.movie_id && <TrashIcon className="w-4 h-4" />}
 									</button>
 								</div>
 

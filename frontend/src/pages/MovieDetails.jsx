@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMovieStore, useWatchlistStore, useReviewStore, useAuthStore } from "../store";
-import { ArrowLeftIcon, StarIcon, CalendarIcon, BookmarkIcon, EditIcon, TrashIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, BookmarkIcon, EditIcon, TrashIcon } from "lucide-react";
 import toast from "react-hot-toast";
+import { ComponentLoader } from "../components/LoadingSpinner";
+import EmptyState from "../components/EmptyState ";
+import StarRating from "../components/StarRating";
+import ReviewCard from "../components/ReviewCard";
+import { getStatusBadgeColor } from "../utils/getStatusBadgeColor";
+import { getStatusIcon } from "../utils/getStatusIcon";
 
 const MovieDetails = () => {
 	const { id } = useParams();
@@ -64,9 +70,7 @@ const MovieDetails = () => {
 
 			if (watchlistItem) {
 				await updateWatchlistStatus(currentMovie.tmdb_id, status);
-				toast.success(
-					`Updated to ${statusLabels[status]}`
-				);
+				toast.success(`Updated to ${statusLabels[status]}`);
 			} else {
 				await addToWatchlist(movieData, status);
 				toast.success("Added to watchlist");
@@ -83,7 +87,7 @@ const MovieDetails = () => {
 		if (!currentMovie) return;
 
 		try {
-			await submitReview(currentMovie.id || id, reviewData.rating, reviewData.comment);
+			await submitReview(currentMovie.id || id, reviewData.rating, reviewData.comment, user.id, user.name);
 
 			toast.success(userReview ? "Review updated!" : "Review submitted!");
 			setShowReviewForm(false);
@@ -106,59 +110,20 @@ const MovieDetails = () => {
 		}
 	};
 
-	const getStatusColor = (status) => {
-		switch (status) {
-			case "want_to_watch":
-				return "badge-secondary";
-			case "watching":
-				return "badge-primary";
-			case "completed":
-				return "badge-success";
-			default:
-				return "badge-ghost";
-		}
-	};
-
-	const renderStars = (rating, interactive = false, onRate = null) => {
-		return (
-			<div className="flex gap-1">
-				{[1, 2, 3, 4, 5].map((star) => (
-					<button
-						key={star}
-						type={interactive ? "button" : undefined}
-						className={`${interactive ? "cursor-pointer hover:scale-110" : "cursor-default"} transition-transform`}
-						onClick={interactive ? () => onRate(star) : undefined}
-						disabled={!interactive}
-					>
-						<StarIcon className={`w-5 h-5 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
-					</button>
-				))}
-			</div>
-		);
-	};
-
 	if (movieLoading) {
-		return (
-			<div className="container mx-auto px-4 py-8">
-				<div className="flex justify-center items-center min-h-[50vh]">
-					<div className="text-center">
-						<span className="loading loading-spinner loading-lg"></span>
-						<p className="mt-4">Loading movie details...</p>
-					</div>
-				</div>
-			</div>
-		);
+		return <ComponentLoader size="lg" message="Loading movie details..." />;
 	}
 
 	if (movieError || !currentMovie) {
 		return (
 			<div className="container mx-auto px-4 py-8">
 				<div className="text-center">
-					<h2 className="text-2xl font-bold mb-4">Movie Not Found</h2>
-					<p className="text-base-content/70 mb-6">{movieError || "The movie you're looking for doesn't exist."}</p>
-					<button onClick={() => navigate(-1)} className="btn btn-primary">
-						Go Back
-					</button>
+					<EmptyState
+						title="Movie Not Found"
+						message={movieError || "The movie you're looking for doesn't exist."}
+						buttonLabel="Go Back"
+						onButtonClick={() => navigate(-1)}
+					/>
 				</div>
 			</div>
 		);
@@ -205,7 +170,8 @@ const MovieDetails = () => {
 							<div className="flex flex-wrap items-center gap-4 mb-4">
 								{averageRating > 0 && (
 									<div className="flex items-center gap-2">
-										{renderStars(Math.round(averageRating))}
+										<StarRating rating={Math.round(averageRating)} />
+
 										<span className="text-sm text-base-content/70">
 											{averageRating} ({reviews.length} review{reviews.length !== 1 ? "s" : ""})
 										</span>
@@ -213,8 +179,8 @@ const MovieDetails = () => {
 								)}
 
 								{watchlistItem && (
-									<span className={`badge ${getStatusColor(watchlistItem.status)}`}>
-										<BookmarkIcon className="w-3 h-3 mr-1" />
+									<span className={`py-2.5 badge ${getStatusBadgeColor(watchlistItem.status)}`}>
+										{getStatusIcon(watchlistItem.status)}
 										{statusLabels[watchlistItem.status]}
 									</span>
 								)}
@@ -272,7 +238,11 @@ const MovieDetails = () => {
 								<label className="label">
 									<span className="label-text">Rating</span>
 								</label>
-								{renderStars(reviewData.rating, true, (rating) => setReviewData({ ...reviewData, rating }))}
+								<StarRating
+									rating={reviewData.rating}
+									interactive
+									onRate={(star) => setReviewData({ ...reviewData, rating: star })}
+								/>
 							</div>
 
 							<div>
@@ -328,7 +298,7 @@ const MovieDetails = () => {
 											<div>
 												<p className="font-medium">{review.user_name}</p>
 												<div className="flex items-center gap-2">
-													{renderStars(review.rating)}
+													<StarRating rating={review.rating} />{" "}
 													<span className="text-sm text-base-content/70">
 														{new Date(review.created_at).toLocaleDateString()}
 													</span>
