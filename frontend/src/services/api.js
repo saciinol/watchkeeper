@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000
 
 const api = axios.create({
 	baseURL: `${BASE_URL}/api`,
-	timeout: 20000, // request timeout (10 seconds)
+	timeout: 20000, // request timeout (20 seconds)
 	headers: {
 		"Content-Type": "application/json",
 	},
@@ -19,20 +19,26 @@ api.interceptors.request.use(
 			config.headers.Authorization = `Bearer ${token}`;
 		}
 
-		// log the request for debugging (remove in production)
-		console.log("Making request to:", config.url);
+		// Only log in development
+		if (import.meta.env.MODE === "development") {
+			console.log("Making request to:", config.url);
+		}
 
 		return config;
 	},
 	(error) => {
-		console.error("Request setup error:", error);
+		if (import.meta.env.MODE === "development") {
+			console.error("Request setup error:", error);
+		}
 		return Promise.reject(error);
 	}
 );
 
 api.interceptors.response.use(
 	(response) => {
-		console.log("Response received:", response.status);
+		if (import.meta.env.MODE === "development") {
+			console.log("Response received:", response.status);
+		}
 		return response;
 	},
 	(error) => {
@@ -40,10 +46,15 @@ api.interceptors.response.use(
 
 		// no response from server (network error, server down, etc.)
 		if (!error.response) {
-			console.error("Network Error:", error.message);
-			toast.error("Something went wrong");
+			if (import.meta.env.MODE === "development") {
+				console.error("Network Error:", error.message);
+			}
+			
+			const errorMessage = "Network error. Please check your connection.";
+			toast.error(errorMessage);
+			
 			return Promise.reject({
-				message: "Network error. Please check your connection.",
+				message: errorMessage,
 				type: "network",
 			});
 		}
@@ -52,9 +63,19 @@ api.interceptors.response.use(
 		const { status, data } = error.response;
 
 		switch (status) {
+			case 400:
+				// Bad request - validation errors, login credentials, etc.
+				return Promise.reject({
+					message: data.message || "Bad request. Please check your input.",
+					errors: data.errors || [],
+					type: "validation",
+				});
+
 			case 401:
-				// unauthorized - token expired or invalid
-				console.error("Unauthorized access");
+				// Unauthorized - token expired or invalid
+				if (import.meta.env.MODE === "development") {
+					console.error("Unauthorized access");
+				}
 
 				// remove invalid token
 				localStorage.removeItem("authToken");

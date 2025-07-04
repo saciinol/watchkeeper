@@ -30,8 +30,8 @@ export const validateName = (name) => {
 			errors.push("Name must be at least 2 characters long");
 		}
 
-		if (name.trim().length > 100) {
-			errors.push("Name cannot exceed 100 characters");
+		if (name.trim().length > 50) {
+			errors.push("Name cannot exceed 50 characters");
 		}
 
 		if (!/^[a-zA-Z0-9 .\-_]+$/.test(name.trim())) {
@@ -120,10 +120,16 @@ export const validateLoginForm = (formData) => {
 		errors.email = ["Please enter a valid email address"];
 	}
 
-	// validate password
-	if (!formData.password) {
-		errors.password = ["Password is required"];
+  // validate password
+	const passwordValidation = validatePassword(formData.password);
+	if (!passwordValidation.isValid) {
+		errors.password = passwordValidation.errors;
 	}
+
+	// // validate password
+	// if (!formData.password) {
+	// 	errors.password = ["Password is required"];
+	// }
 
 	return {
 		isValid: Object.keys(errors).length === 0,

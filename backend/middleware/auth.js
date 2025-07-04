@@ -1,6 +1,11 @@
 import jwt from "jsonwebtoken";
 import { sql } from "../config/db.js";
 
+// Validate JWT_SECRET at module load time
+if (!process.env.JWT_SECRET) {
+	throw new Error("JWT_SECRET environment variable is not defined");
+}
+
 export const authenticateToken = async (req, res, next) => {
 	const authHeader = req.headers.authorization;
 	const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
@@ -15,7 +20,7 @@ export const authenticateToken = async (req, res, next) => {
 	try {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-		// vverify user still exists in database
+		// verify user still exists in database
 		const user = await sql`
 			SELECT id, name, email FROM users WHERE id = ${decoded.userId}
 		`;

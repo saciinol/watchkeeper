@@ -13,28 +13,53 @@ export const registerAuth = async (req, res) => {
 		const newRegisteredUser = await sql`
       INSERT INTO users (name, email, password_hash)
       VALUES (${name}, ${email}, ${hash})
-      RETURNING *
+      RETURNING id, name, email, created_at
     `;
 
-		console.log("New user added:", newRegisteredUser[0]);
+		const user = newRegisteredUser[0];
 
-		// exclude password_hash from response
-		const user = { ...newRegisteredUser[0] };
-		delete user.password_hash;
+		// Log registration (without sensitive data)
+		console.log("New user registered:", { id: user.id, email: user.email });
+
+		// Generate JWT token for auto-login
+		const token = jwt.sign(
+			{
+				userId: user.id,
+				email: user.email,
+			},
+			process.env.JWT_SECRET,
+			{
+				expiresIn: process.env.JWT_EXPIRES_IN || "24h",
+			}
+		);
 
 		res.status(201).json({
 			success: true,
-			data: user,
+			data: {
+				user,
+				token,
+			},
 		});
 	} catch (error) {
 		console.error("Registration error:", error);
 
 		// handle specific database errors
 		if (error.code === "23505") {
-			// postgreSQL unique constraint violation
+			// PostgreSQL unique constraint violation
 			return res.status(409).json({
 				success: false,
 				message: "Email already in use",
+				errors: ["Email already in use"], // Consistent with validation middleware
+			});
+		}
+
+		// Handle other potential database errors
+		if (error.code === "23502") {
+			// PostgreSQL not null constraint violation
+			return res.status(400).json({
+				success: false,
+				message: "Missing required fields",
+				errors: ["Missing required fields"],
 			});
 		}
 
@@ -56,7 +81,7 @@ export const loginAuth = async (req, res) => {
 		`;
 
 		if (existingUser.length === 0) {
-			return res.status(401).json({
+			return res.status(400).json({
 				success: false,
 				message: "Invalid email or password",
 			});
@@ -68,7 +93,7 @@ export const loginAuth = async (req, res) => {
 		const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
 		if (!isPasswordValid) {
-			return res.status(401).json({
+			return res.status(400).json({
 				success: false,
 				message: "Invalid email or password",
 			});

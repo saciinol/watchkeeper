@@ -5,6 +5,7 @@ import { validateRegistrationForm, sanitizeInput } from "../utils/validation";
 import { ComponentLoader } from "../components/LoadingSpinner";
 import toast from "react-hot-toast";
 import PasswordToggleIcon from "../components/PasswordToggleIcon";
+import { useAuthStore } from "../store";
 
 const Register = () => {
 	const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ const Register = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [validationErrors, setValidationErrors] = useState({});
 
+	const { login, error } = useAuthStore();
 	const navigate = useNavigate();
 
 	const handleChange = (e) => {
@@ -63,8 +65,10 @@ const Register = () => {
 			});
 
 			if (response.success) {
-				toast.success("Registration successful! Please login.");
-				navigate("/login");
+				await login(response.data.user, response.data.token);
+
+				toast.success("Registration successful!");
+				navigate("/");
 			}
 		} catch (error) {
 			toast.error(error.message || "Registration failed");
@@ -87,6 +91,12 @@ const Register = () => {
 			<div className="card w-full max-w-md bg-base-100 shadow-xl">
 				<div className="card-body">
 					<h2 className="card-title text-center text-2xl font-bold mb-6">Join WatchKeeper</h2>
+
+          {error && (
+						<div className="alert alert-error mb-4">
+							<span>{error}</span>
+						</div>
+					)}
 
 					<form onSubmit={handleSubmit} className="space-y-4">
 						<div className="form-control">
