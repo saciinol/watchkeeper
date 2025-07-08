@@ -9,7 +9,7 @@ const ScrollToTop = () => {
 			top: 0,
 			behavior: "instant",
 		});
-	}, [location.pathname]); 
+	}, [location.pathname]);
 
 	return null;
 };

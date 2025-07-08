@@ -74,7 +74,7 @@ const MovieDetails = () => {
 				await addToWatchlist(movieData, status);
 				toast.success("Added to watchlist");
 			}
-			event.target.closest('button').blur(); // Close dropdown
+			event.target.closest("button").blur(); // Close dropdown
 		} catch (error) {
 			toast.error(error.message || "Failed to update watchlist");
 		} finally {
@@ -103,7 +103,7 @@ const MovieDetails = () => {
 			try {
 				await deleteReview(userReview.id, currentMovie.id || id);
 				toast.success("Review deleted");
-				event.target.closest('button').blur(); // Close dropdown
+				event.target.closest("button").blur(); // Close dropdown
 			} catch (error) {
 				toast.error(error.message || "Failed to delete review");
 			}

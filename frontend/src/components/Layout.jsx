@@ -98,7 +98,7 @@ const Layout = ({ children }) => {
 						{/* Moon icon for dark theme */}
 						<Moon className="swap-off w-6 h-6 text-info" />
 					</label>
-          
+
 					<div className="dropdown dropdown-end">
 						<div
 							tabIndex={0}

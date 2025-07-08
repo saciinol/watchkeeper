@@ -92,7 +92,7 @@ const Register = () => {
 				<div className="card-body">
 					<h2 className="card-title text-center text-2xl font-bold mb-6">Join WatchKeeper</h2>
 
-          {error && (
+					{error && (
 						<div className="alert alert-error mb-4">
 							<span>{error}</span>
 						</div>
